@@ -1,99 +1,129 @@
-const apiURL = "https://api.npms.io/v2/"; // Credit to https://npms.io/ for a great api
-const appContainer = document.getElementById("appContainer");
-const updateBtn = document.getElementById("update");
-const inputText = document.getElementById("inputText");
-const outputText = document.getElementById("outputText");
-const updatePackage = function() {
-  const inputJSON = inputText.value;
-  const parsedInput = JSON.parse(inputJSON);
-  const isValid = typeof parsedInput === "object";
+// Credit to https://npms.io/ for a great api
 
-  resetContainer();
+const elements = {
+  appContainer: document.getElementById("appContainer"),
+  updateBtn: document.getElementById("update"),
+  inputText: document.getElementById("inputText"),
+  outputText: document.getElementById("outputText")
+};
 
-  if (isValid) {
-    const hasDependencies = findTheDependencies(parsedInput);
+const model = {
+  apiURL: "https://api.npms.io/v2/",
+  toCheck: ["devDependencies", "dependencies"],
+  updateDependencyVersions(obj) {
+    const obj2 = Object.assign({}, obj);
+    const getPackages = new Promise(resolve => {
+      const promises = [];
 
-    if (hasDependencies) {
-      updateDependencyVersions(parsedInput.devDependencies).then(result => {
-        const outputJSON = Object.assign({}, parsedInput);
+      Object.keys(obj2).forEach(pkg => {
+        const firstChar = pkg.substring(0, 1);
 
-        outputJSON.devDependencies = result;
-        outputText.value = JSON.stringify(outputJSON, null, 2);
+        if (firstChar !== "@") {
+          promises.push(
+            this.replaceVersion(pkg).then(json => {
+              // TODO: make caret or tilde on a toggle?
+              obj2[pkg] = `^${json.collected.metadata.version}`;
+            })
+          );
+        }
       });
+
+      Promise.all(promises).then(() => {
+        resolve(obj2);
+      });
+    });
+
+    return getPackages;
+  },
+  replaceVersion(pkg) {
+    return fetch(`${this.apiURL}package/${pkg}`)
+      .then(this.status)
+      .then(response => response.json());
+  },
+  status(response) {
+    if (response.status >= 200 && response.status < 300) {
+      return Promise.resolve(response);
     }
-  } else {
-    console.log("input not valid");
+
+    return Promise.reject(new Error(response.statusText));
+  },
+  findTheDependencies(json) {
+    let hasDependencies = false;
+
+    // TODO: check for dev and non dev
+    if (typeof json.devDependencies !== "undefined") {
+      hasDependencies = true;
+    }
+
+    return hasDependencies;
   }
 };
 
-// Assign events
-
-updateBtn.addEventListener("click", updatePackage);
-inputText.addEventListener("click", e => {
-  resetContainer();
-  appContainer.classList.add("container--active-input");
-});
-outputText.addEventListener("click", e => {
-  resetContainer();
-  appContainer.classList.add("container--active-output");
-});
-
-// Functionality
-
-function updateDependencyVersions(obj) {
-  const obj2 = Object.assign({}, obj);
-  const getPackages = new Promise(resolve => {
-    const promises = [];
-
-    for (let pkg in obj2) {
-      // pkgs that start with "@" break the api
-      let firstChar = pkg.substring(0, 1);
-
-      if (firstChar !== "@" && obj2.hasOwnProperty(pkg)) {
-        console.log(pkg);
-        promises.push(
-          replaceVersion(pkg).then(json => {
-            // TODO: make caret or tilde on a toggle input?
-            obj2[pkg] = `^${json.collected.metadata.version}`;
-          })
-        );
-      }
+const controller = {
+  updatePackage(input) {
+    if (input === "") {
+      console.log("no input data");
+      return;
     }
 
-    Promise.all(promises).then(() => {
-      resolve(obj2);
+    const isValid = this.isJsonString(input);
+
+    if (!isValid) {
+      console.log("not valid json");
+      return;
+    }
+
+    const json = JSON.parse(input);
+    const hasDependencies = model.findTheDependencies(json);
+
+    if (hasDependencies) {
+      model
+        .updateDependencyVersions(json.devDependencies)
+        .then(result => {
+          const output = Object.assign({}, json);
+
+          output.devDependencies = result;
+          view.resetContainer();
+          view.updateOutput(JSON.stringify(output, null, 2));
+        })
+        .catch(err => {
+          console.log(err.stack);
+        });
+    }
+  },
+  isJsonString(str) {
+    try {
+      JSON.parse(str);
+    } catch (e) {
+      return false;
+    }
+    return true;
+  },
+  init() {
+    view.init();
+  }
+};
+
+const view = {
+  resetContainer() {
+    elements.appContainer.className = "container";
+  },
+  updateOutput(output) {
+    elements.outputText.value = output;
+  },
+  init() {
+    elements.updateBtn.addEventListener("click", () => {
+      controller.updatePackage(elements.inputText.value);
     });
-  });
-
-  return getPackages;
-}
-
-function replaceVersion(pkg) {
-  return fetch(`${apiURL}package/${pkg}`)
-    .then(status)
-    .then(response => response.json());
-}
-
-function status(response) {
-  if (response.status >= 200 && response.status < 300) {
-    return Promise.resolve(response);
-  } else {
-    return Promise.reject(new Error(response.statusText));
+    elements.inputText.addEventListener("click", () => {
+      this.resetContainer();
+      elements.appContainer.classList.add("container--active-input");
+    });
+    elements.outputText.addEventListener("click", () => {
+      this.resetContainer();
+      elements.appContainer.classList.add("container--active-output");
+    });
   }
-}
+};
 
-function findTheDependencies(inputJSON) {
-  const toCheck = ["devDependencies", "dependencies"];
-  let hasDependencies = false;
-
-  // TODO: check for dev and non dev
-  if (typeof inputJSON.devDependencies !== "undefined") {
-    hasDependencies = true;
-  }
-
-  return hasDependencies;
-}
-
-function resetContainer() {
-  appContainer.className = "container";
-}
+controller.init();
