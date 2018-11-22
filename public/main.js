@@ -6,10 +6,12 @@ const elements = {
   inputText: document.getElementById("inputText"),
   outputText: document.getElementById("outputText")
 };
+let model = {};
+let controller = {};
+let view = {};
 
-const model = {
+model = {
   apiURL: "https://api.npms.io/v2/",
-  toCheck: ["devDependencies", "dependencies"],
   updateDependencyVersions(obj) {
     const obj2 = Object.assign({}, obj);
     const getPackages = new Promise(resolve => {
@@ -50,8 +52,10 @@ const model = {
   findTheDependencies(json) {
     let hasDependencies = false;
 
-    // TODO: check for dev and non dev
-    if (typeof json.devDependencies !== "undefined") {
+    if (
+      typeof json.devDependencies !== "undefined" ||
+      typeof json.dependencies !== "undefined"
+    ) {
       hasDependencies = true;
     }
 
@@ -59,7 +63,7 @@ const model = {
   }
 };
 
-const controller = {
+controller = {
   updatePackage(input) {
     if (input === "") {
       console.log("no input data");
@@ -76,20 +80,23 @@ const controller = {
     const json = JSON.parse(input);
     const hasDependencies = model.findTheDependencies(json);
 
-    if (hasDependencies) {
-      model
-        .updateDependencyVersions(json.devDependencies)
-        .then(result => {
-          const output = Object.assign({}, json);
-
-          output.devDependencies = result;
-          view.resetContainer();
-          view.updateOutput(JSON.stringify(output, null, 2));
-        })
-        .catch(err => {
-          console.log(err.stack);
-        });
+    if (!hasDependencies) {
+      console.log("no dependencies");
+      return;
     }
+
+    model
+      .updateDependencyVersions(json.devDependencies)
+      .then(result => {
+        const output = Object.assign({}, json);
+
+        output.devDependencies = result;
+        view.resetContainer();
+        view.updateOutput(JSON.stringify(output, null, 2));
+      })
+      .catch(err => {
+        console.log(err.stack);
+      });
   },
   isJsonString(str) {
     try {
@@ -104,7 +111,7 @@ const controller = {
   }
 };
 
-const view = {
+view = {
   resetContainer() {
     elements.appContainer.className = "container";
   },
