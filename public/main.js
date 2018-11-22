@@ -1,4 +1,5 @@
 const apiURL = "https://api.npms.io/v2/"; // Credit to https://npms.io/ for a great api
+const appContainer = document.getElementById("appContainer");
 const updateBtn = document.getElementById("update");
 const inputText = document.getElementById("inputText");
 const outputText = document.getElementById("outputText");
@@ -6,6 +7,8 @@ const updatePackage = function() {
   const inputJSON = inputText.value;
   const parsedInput = JSON.parse(inputJSON);
   const isValid = typeof parsedInput === "object";
+
+  resetContainer();
 
   if (isValid) {
     const hasDependencies = findTheDependencies(parsedInput);
@@ -26,6 +29,14 @@ const updatePackage = function() {
 // Assign events
 
 updateBtn.addEventListener("click", updatePackage);
+inputText.addEventListener("click", e => {
+  resetContainer();
+  appContainer.classList.add("container--active-input");
+});
+outputText.addEventListener("click", e => {
+  resetContainer();
+  appContainer.classList.add("container--active-output");
+});
 
 // Functionality
 
@@ -81,4 +92,8 @@ function findTheDependencies(inputJSON) {
   }
 
   return hasDependencies;
+}
+
+function resetContainer() {
+  appContainer.className = "container";
 }

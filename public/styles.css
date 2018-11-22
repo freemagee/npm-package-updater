@@ -18,8 +18,13 @@ body {
   height: 100%;
   grid-template-columns: 100%;
   grid-template-rows: 1fr 50px 1fr;
-  grid-column-gap: 10px;
   grid-row-gap: 15px;
+}
+.container--active-input {
+  grid-template-rows: 1fr 50px 100px;
+}
+.container--active-output {
+  grid-template-rows: 100px 50px 1fr;
 }
 .action {
   justify-self: center;
