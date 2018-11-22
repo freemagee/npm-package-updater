@@ -66,14 +66,20 @@ model = {
 controller = {
   updatePackage(input) {
     if (input === "") {
-      console.log("no input data");
+      view.showError({
+        title: "Error!",
+        message: "No input json. Please check and try again."
+      });
       return;
     }
 
     const isValid = this.isJsonString(input);
 
     if (!isValid) {
-      console.log("not valid json");
+      view.showError({
+        title: "Error!",
+        message: "Invalid package json. Please check and try again."
+      });
       return;
     }
 
@@ -81,7 +87,10 @@ controller = {
     const hasDependencies = model.findTheDependencies(json);
 
     if (!hasDependencies) {
-      console.log("no dependencies");
+      view.showError({
+        title: "Error!",
+        message: "No dependencies detected in package json."
+      });
       return;
     }
 
@@ -94,8 +103,11 @@ controller = {
         view.resetContainer();
         view.updateOutput(JSON.stringify(output, null, 2));
       })
-      .catch(err => {
-        console.log(err.stack);
+      .catch(() => {
+        view.showError({
+          title: "Error!",
+          message: "Unable to update packages. You are welcome to try again."
+        });
       });
   },
   isJsonString(str) {
@@ -117,6 +129,17 @@ view = {
   },
   updateOutput(output) {
     elements.outputText.value = output;
+  },
+  showError(err) {
+    // TODO: add event to close button...
+    const html = `<div id="alert" class="alert alert--error">
+      <h3 class="alert__title">${err.title}</h3>
+      <p class="alert__message">${err.message}</p>
+      <button id="closeAlertBtn" class="alert__close">Close</button>
+    </div>`;
+    const frag = document.createRange().createContextualFragment(html);
+
+    document.body.appendChild(frag);
   },
   init() {
     elements.updateBtn.addEventListener("click", () => {
