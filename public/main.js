@@ -133,13 +133,19 @@ view = {
   showError(err) {
     // TODO: add event to close button...
     const html = `<div id="alert" class="alert alert--error">
+      <button id="closeAlertBtn" class="alert__close">🗙</button>
       <h3 class="alert__title">${err.title}</h3>
       <p class="alert__message">${err.message}</p>
-      <button id="closeAlertBtn" class="alert__close">Close</button>
     </div>`;
     const frag = document.createRange().createContextualFragment(html);
 
     document.body.appendChild(frag);
+    this.bindCloseBtn();
+  },
+  bindCloseBtn() {
+    document.getElementById("closeAlertBtn").addEventListener("click", () => {
+      document.getElementById("alert").remove();
+    });
   },
   init() {
     elements.updateBtn.addEventListener("click", () => {
