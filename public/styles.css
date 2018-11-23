@@ -40,12 +40,27 @@ body {
   font-family: "Ubuntu Mono", monospace;
   font-size: 1.2rem;
   color: #444;
+  border-width: 1px;
+  border-style: solid;
   border-color: #b7daba;
   resize: none;
   outline: 0;
 }
 .textarea:focus {
-  border-color: #000;
+  border-color: #3f7a44;
+}
+.textarea::placeholder {
+  color: #999;
+}
+.textarea::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  color: #999;
+}
+.textarea::-moz-placeholder { /* Firefox 19+ */
+  color: #999;
+  opacity: 1;
+}
+.textarea:-ms-input-placeholder { /* IE 10+ */
+  color: #999;
 }
 .btn {
   display: inline-block;
