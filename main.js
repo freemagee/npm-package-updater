@@ -6,32 +6,40 @@ const elements = {
   inputText: document.getElementById("inputText"),
   outputText: document.getElementById("outputText")
 };
-let model = {};
-let controller = {};
-let view = {};
 
-model = {
+const model = {
   apiURL: "https://api.npms.io/v2/",
-  updateDependencyVersions(obj) {
-    const obj2 = Object.assign({}, obj);
+  packageJson: {},
+  setPackageJson(json) {
+    this.packageJson = Object.assign({}, json);
+  },
+  getPackageJson() {
+    return this.packageJson;
+  },
+  setDependencyData(key, newDependencyData) {
+    this.packageJson[key] = newDependencyData;
+  },
+  updateDependencyVersions(key) {
+    const newObj = Object.assign({}, this.packageJson[key]);
     const getPackages = new Promise(resolve => {
       const promises = [];
 
-      Object.keys(obj2).forEach(pkg => {
+      Object.keys(newObj).forEach(pkg => {
         const firstChar = pkg.substring(0, 1);
 
+        // TODO: Figure out what to do with @
         if (firstChar !== "@") {
           promises.push(
             this.replaceVersion(pkg).then(json => {
               // TODO: make caret or tilde on a toggle?
-              obj2[pkg] = `^${json.collected.metadata.version}`;
+              newObj[pkg] = `^${json.collected.metadata.version}`;
             })
           );
         }
       });
 
       Promise.all(promises).then(() => {
-        resolve(obj2);
+        resolve(newObj);
       });
     });
 
@@ -49,22 +57,23 @@ model = {
 
     return Promise.reject(new Error(response.statusText));
   },
-  findTheDependencies(json) {
-    let hasDependencies = false;
+  findTheDependencies() {
+    const hasDependencies = [];
 
-    if (
-      typeof json.devDependencies !== "undefined" ||
-      typeof json.dependencies !== "undefined"
-    ) {
-      hasDependencies = true;
+    if (typeof this.packageJson.dependencies !== "undefined") {
+      hasDependencies.push("dependencies");
+    }
+
+    if (typeof this.packageJson.devDependencies !== "undefined") {
+      hasDependencies.push("devDependencies");
     }
 
     return hasDependencies;
   }
 };
 
-controller = {
-  updatePackage(input) {
+const controller = {
+  updateJson(input) {
     if (input === "") {
       view.showError({
         title: "Error!",
@@ -83,10 +92,10 @@ controller = {
       return;
     }
 
-    const json = JSON.parse(input);
-    const hasDependencies = model.findTheDependencies(json);
+    model.setPackageJson(JSON.parse(input));
+    const hasDependencies = model.findTheDependencies();
 
-    if (!hasDependencies) {
+    if (hasDependencies.length === 0) {
       view.showError({
         title: "Error!",
         message: "No dependencies detected in package json."
@@ -94,19 +103,38 @@ controller = {
       return;
     }
 
-    model
-      .updateDependencyVersions(json.devDependencies)
-      .then(result => {
-        const output = Object.assign({}, json);
+    this.updatePackages(hasDependencies);
+  },
+  updatePackages(hasDependencies) {
+    const promises = hasDependencies.map(key => {
+      return model
+        .updateDependencyVersions(key)
+        .then(result => {
+          if (typeof result !== "undefined") {
+            return Promise.resolve({
+              key: key,
+              packages: result
+            });
+          }
 
-        output.devDependencies = result;
-        view.resetContainer();
-        view.updateOutput(JSON.stringify(output, null, 2));
+          throw new Error("Unable to update packages.");
+        })
+        .catch(error => {
+          return Promise.reject(error);
+        });
+    });
+
+    Promise.all(promises)
+      .then(results => {
+        results.forEach(result =>
+          model.setDependencyData(result.key, result.packages)
+        );
       })
-      .catch(() => {
+      .then(() => view.showResult())
+      .catch(error => {
         view.showError({
           title: "Error!",
-          message: "Unable to update packages. You are welcome to try again."
+          message: error.message
         });
       });
   },
@@ -123,15 +151,18 @@ controller = {
   }
 };
 
-view = {
+const view = {
   resetContainer() {
     elements.appContainer.className = "container";
   },
   updateOutput(output) {
     elements.outputText.value = output;
   },
+  showResult() {
+    this.resetContainer();
+    this.updateOutput(JSON.stringify(model.getPackageJson(), null, 2));
+  },
   showError(err) {
-    // TODO: add event to close button...
     const html = `<div id="alert" class="alert alert--error">
       <button id="closeAlertBtn" class="alert__close">🗙</button>
       <h3 class="alert__title">${err.title}</h3>
@@ -149,7 +180,7 @@ view = {
   },
   init() {
     elements.updateBtn.addEventListener("click", () => {
-      controller.updatePackage(elements.inputText.value);
+      controller.updateJson(elements.inputText.value);
     });
     elements.inputText.addEventListener("click", () => {
       this.resetContainer();
