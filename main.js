@@ -168,15 +168,15 @@ const controller = {
 };
 
 const view = {
-  resetContainer() {
-    elements.appContainer.className = "container";
+  resetOutput() {
+    elements.outputText.classList.remove("hasOutput");
   },
   updateOutput(output) {
     elements.outputText.classList.add("hasOutput");
     elements.outputText.innerText = output;
   },
   showResult() {
-    this.resetContainer();
+    this.resetOutput();
     this.updateOutput(JSON.stringify(model.getPackageJson(), null, 2));
   },
   showError(err) {
@@ -198,12 +198,6 @@ const view = {
   init() {
     elements.updateBtn.addEventListener("click", () => {
       controller.updateJson(elements.inputText.value);
-    });
-    elements.inputText.addEventListener("click", () => {
-      this.resetContainer();
-    });
-    elements.outputText.addEventListener("click", () => {
-      this.resetContainer();
     });
   }
 };
