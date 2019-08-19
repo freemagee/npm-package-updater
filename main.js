@@ -27,12 +27,22 @@ const model = {
       Object.keys(newObj).forEach(pkg => {
         const firstChar = pkg.substring(0, 1);
 
-        // TODO: Figure out what to do with @
+        // TODO: make caret or tilde on a toggle?
         if (firstChar !== "@") {
           promises.push(
             this.replaceVersion(pkg).then(json => {
-              // TODO: make caret or tilde on a toggle?
               newObj[pkg] = `^${json.collected.metadata.version}`;
+            })
+          );
+        } else if (firstChar === "@") {
+          // Scoped package. So get to the package name.
+          const scopedPkgName = this.parseScoped(pkg);
+
+          promises.push(
+            this.replaceVersion(scopedPkgName).then(json => {
+              const scopedVer = json.collected.metadata.devDependencies[pkg];
+
+              newObj[pkg] = scopedVer;
             })
           );
         }
@@ -69,6 +79,12 @@ const model = {
     }
 
     return hasDependencies;
+  },
+  parseScoped(pkg) {
+    let scoped = pkg.slice(1);
+    const slashPos = scoped.indexOf("/");
+
+    return scoped.substring(0, 5);
   }
 };
 
@@ -165,7 +181,7 @@ const view = {
   },
   showError(err) {
     const html = `<div id="alert" class="alert alert--error" role="dialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
-      <button id="closeAlertBtn" class="alert__close">🗙</button>
+      <button type="button" id="closeAlertBtn" class="alert__close">🗙</button>
       <h3 class="alert__title" id="dialogTitle">${err.title}</h3>
       <p class="alert__message" id="dialogDesc">${err.message}</p>
     </div>`;
