@@ -156,17 +156,18 @@ const view = {
     elements.appContainer.className = "container";
   },
   updateOutput(output) {
-    elements.outputText.value = output;
+    elements.outputText.classList.add("hasOutput");
+    elements.outputText.innerText = output;
   },
   showResult() {
     this.resetContainer();
     this.updateOutput(JSON.stringify(model.getPackageJson(), null, 2));
   },
   showError(err) {
-    const html = `<div id="alert" class="alert alert--error">
+    const html = `<div id="alert" class="alert alert--error" role="dialog" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
       <button id="closeAlertBtn" class="alert__close">🗙</button>
-      <h3 class="alert__title">${err.title}</h3>
-      <p class="alert__message">${err.message}</p>
+      <h3 class="alert__title" id="dialogTitle">${err.title}</h3>
+      <p class="alert__message" id="dialogDesc">${err.message}</p>
     </div>`;
     const frag = document.createRange().createContextualFragment(html);
 
@@ -184,11 +185,9 @@ const view = {
     });
     elements.inputText.addEventListener("click", () => {
       this.resetContainer();
-      elements.appContainer.classList.add("container--active-input");
     });
     elements.outputText.addEventListener("click", () => {
       this.resetContainer();
-      elements.appContainer.classList.add("container--active-output");
     });
   }
 };
