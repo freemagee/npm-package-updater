@@ -26,26 +26,14 @@ const model = {
 
       Object.keys(newObj).forEach(pkg => {
         const firstChar = pkg.substring(0, 1);
+        const encodedPkgName = encodeURIComponent(pkg);
 
         // TODO: make caret or tilde on a toggle?
-        if (firstChar !== "@") {
-          promises.push(
-            this.replaceVersion(pkg).then(json => {
-              newObj[pkg] = `^${json.collected.metadata.version}`;
-            })
-          );
-        } else if (firstChar === "@") {
-          // Scoped package. So get to the package name.
-          const scopedPkgName = this.parseScoped(pkg);
-
-          promises.push(
-            this.replaceVersion(scopedPkgName).then(json => {
-              const scopedVer = json.collected.metadata.devDependencies[pkg];
-
-              newObj[pkg] = scopedVer;
-            })
-          );
-        }
+        promises.push(
+          this.replaceVersion(encodedPkgName).then(json => {
+            newObj[pkg] = `^${json.collected.metadata.version}`;
+          })
+        );
       });
 
       Promise.all(promises).then(() => {
@@ -79,12 +67,6 @@ const model = {
     }
 
     return hasDependencies;
-  },
-  parseScoped(pkg) {
-    let scoped = pkg.slice(1);
-    const slashPos = scoped.indexOf("/");
-
-    return scoped.substring(0, 5);
   }
 };
 
