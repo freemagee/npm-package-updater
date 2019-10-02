@@ -3,6 +3,7 @@
 const elements = {
   appContainer: document.getElementById("appContainer"),
   updateBtn: document.getElementById("update"),
+  copyBtn: document.getElementById("copy"),
   inputText: document.getElementById("inputText"),
   outputText: document.getElementById("outputText")
 };
@@ -155,7 +156,13 @@ const view = {
   },
   updateOutput(output) {
     elements.outputText.classList.add("hasOutput");
-    elements.outputText.innerText = output;
+    elements.outputText.value = output;
+    elements.copyBtn.disabled = false;
+  },
+  copyOutput() {
+    elements.outputText.select();
+    elements.outputText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
   },
   showResult() {
     this.resetOutput();
@@ -180,6 +187,9 @@ const view = {
   init() {
     elements.updateBtn.addEventListener("click", () => {
       controller.updateJson(elements.inputText.value);
+    });
+    elements.copyBtn.addEventListener("click", () => {
+      this.copyOutput();
     });
   }
 };

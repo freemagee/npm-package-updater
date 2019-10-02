@@ -13,15 +13,16 @@
 
 <body>
   <div class="container" id="appContainer" role="application">
+    <h1 class="title">NPM Packages Updater</h1>
     <div class="input">
       <textarea id="inputText" class="textarea" placeholder="Paste package.json here"></textarea>
     </div>
     <div class="output">
-      <pre class="output__text" id="outputText" role="textbox" aria-readonly="true">Updated package.json will show here</pre>
+      <textarea id="outputText" class="textarea" placeholder="Updated package.json will show here" readonly></textarea>
     </div>
     <div class="action">
-      <h1 class="title">NPM Packages Updater</h1>
       <button type="button" id="update" class="btn">Update dependencies ↻</button>
+      <button type="button" id="copy" class="btn btn--secondary" disabled>Copy to clipboard</button>
     </div>
   </div>
 

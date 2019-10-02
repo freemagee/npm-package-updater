@@ -61,7 +61,7 @@ body {
   height: 100%;
   padding-bottom: 15px;
   grid-template-columns: 100%;
-  grid-template-rows: 1fr 1fr 50px;
+  grid-template-rows: 50px 1fr 1fr 50px;
   grid-row-gap: 15px;
 }
 
@@ -116,27 +116,6 @@ body {
 
 .output {
   overflow: auto;
-  background-color: #fff;
-  border-width: 1px;
-  border-style: solid;
-  border-color: var(--color__primary500);
-}
-
-.output__text {
-  display: block;
-  width: 100%;
-  height: 100%;
-  padding: 15px;
-  margin: 0;
-  font-family: "Ubuntu Mono", monospace;
-  font-size: 1.2rem;
-  line-height: 1.1;
-  color: var(--color__grey500);
-  cursor: text;
-}
-
-.output__text.hasOutput {
-  color: var(--color__grey700);
 }
 
 .btn {
@@ -148,7 +127,7 @@ body {
   font-size: 1.2rem;
   line-height: 1;
   color: var(--color__primary100);
-  border: 0;
+  border: 2px solid var(--color__primary900);
   outline: 0;
   background-color: var(--color__primary900);
   cursor: pointer;
@@ -156,11 +135,35 @@ body {
 
 .btn:hover {
   background-color: var(--color__primary700);
+  border-color: var(--color__primary700);
+}
+
+.btn--secondary {
+  color: var(--color__primary900);
+  border-color: var(--color__primary900);
+  background-color: transparent;
+}
+
+.btn--secondary:hover {
+  color: var(--color__primary700);
+  border-color: var(--color__primary700);
+  background-color: transparent;
+}
+
+.btn--secondary[disabled] {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.btn + .btn {
+  margin-left: 15px;
 }
 
 .title {
-  margin: 0 15px 0 0;
+  margin: 0;
   font-size: 1.2rem;
+  text-align: center;
+  line-height: 50px;
   color: var(--color__primary900);
 }
 
