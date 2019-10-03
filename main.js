@@ -4,6 +4,7 @@ const elements = {
   appContainer: document.getElementById("appContainer"),
   updateBtn: document.getElementById("update"),
   copyBtn: document.getElementById("copy"),
+  resetBtn: document.getElementById("reset"),
   inputText: document.getElementById("inputText"),
   outputText: document.getElementById("outputText")
 };
@@ -151,6 +152,12 @@ const controller = {
 };
 
 const view = {
+  resetAll() {
+    elements.inputText.value = "";
+    elements.outputText.classList.remove("hasOutput");
+    elements.outputText.value = "";
+    elements.copyBtn.disabled = true;
+  },
   resetOutput() {
     elements.outputText.classList.remove("hasOutput");
   },
@@ -190,6 +197,9 @@ const view = {
     });
     elements.copyBtn.addEventListener("click", () => {
       this.copyOutput();
+    });
+    elements.resetBtn.addEventListener("click", () => {
+      this.resetAll();
     });
   }
 };

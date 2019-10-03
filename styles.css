@@ -150,7 +150,19 @@ body {
   background-color: transparent;
 }
 
-.btn--secondary[disabled] {
+.btn--tertiary {
+  color: var(--color__primary900);
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.btn--tertiary:hover {
+  color: var(--color__primary700);
+  border-color: transparent;
+  background-color: transparent;
+}
+
+button[disabled] {
   opacity: 0.3;
   pointer-events: none;
 }
